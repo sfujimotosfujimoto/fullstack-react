@@ -24,16 +24,25 @@ class Product extends React.Component {
     return (
       <div className="item">
         <div className="image">
-          <img src="images/products/image-aqua.png" />
+          <img src={this.props.product_image_url} />
         </div>
         <div className="middle aligned content">
+          <div className="header">
+            <a>
+              <i className="large caret up icon"></i>
+              {this.props.votes}
+            </a>
+          </div>
           <div className="description">
-            <a href="">Fort Knight</a>
-            <p>Authentic renaissance actors, delivered in just two weeks.</p>
+            <a href={this.props.url}>
+              {this.props.title}
+            </a>
           </div>
           <div className="extra">
-            <span>Sumitted by:</span>
-            <img className="ui avatar image" src="images/avatars/daniel.jpg" alt=""/>
+            <span>Submitted by:</span>
+            <img
+              className="ui avatar image"
+              src={this.props.submitter_avatar_url} />
           </div>
         </div>
       </div>
