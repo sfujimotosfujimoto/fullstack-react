@@ -4,7 +4,7 @@
 
 Follow the instructions for your platform [here](https://github.com/npm/npm).
 
-2. Install `http-server`
+2. Install all dependencies:
 
 ````
 npm install
