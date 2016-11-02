@@ -166,7 +166,10 @@ class EditableTimerList extends React.Component {
 class EditableTimer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = ({ editFormOpen: false });
+    this.state = ({
+      editFormOpen: false,
+      showEditDelete: false
+    });
 
     this.handleEditClick = this.handleEditClick.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -186,6 +189,7 @@ class EditableTimer extends React.Component {
     this.closeForm();
   }
 
+
   closeForm() {
     this.setState({ editFormOpen: false });
   }
@@ -193,6 +197,7 @@ class EditableTimer extends React.Component {
   openForm() {
     this.setState({ editFormOpen: true });
   }
+
 
 
 
@@ -328,9 +333,15 @@ class ToggleableTimerForm extends React.Component {
 class Timer extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = ({ showEditDelete: false });
+
+
     this.handleStartClick = this.handleStartClick.bind(this);
     this.handleStopClick = this.handleStopClick.bind(this);
     this.handleTrashClick = this.handleTrashClick.bind(this);
+    this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
 
   componentDidMount() {
@@ -353,11 +364,58 @@ class Timer extends React.Component {
     this.props.onTrashClick(this.props.id);
   }
 
+  handleMouseEnter() {
+    this.setState({
+      showEditDelete: true
+    });
+  }
+
+  handleMouseLeave() {
+    this.setState({
+      showEditDelete: false
+    });
+  }
+
+
   render() {
     const elapsedString = helpers.renderElapsedString(this.props.elapsed, this.props.runningSince);
 
+    let editTrashEl;
+
+    if (this.state.showEditDelete) {
+      editTrashEl = (
+        <div className="extra content">
+          <span
+            className="right floated edit icon"
+            onClick={this.props.onEditClick}>
+            <i className="edit icon"></i>
+          </span>
+          <span
+            className="right floated trash icon"
+            onClick={this.handleTrashClick}>
+            <i className="trash icon"></i>
+          </span>
+        </div>
+      );
+    } else {
+      editTrashEl = (
+        <div className="extra content">
+          <span className="right floated icon">
+            <i className=" icon"></i>
+          </span>
+          <span className="right floated icon" >
+            <i className=" icon"></i>
+          </span>
+        </div>
+      );
+    }
+
     return (
-      <div className="ui centered card">
+      <div
+        className="ui centered card"
+        onMouseEnter={this.handleMouseEnter}
+        onMouseLeave={this.handleMouseLeave}
+      >
         <div className="content">
           <div className="header">
             {this.props.title}
@@ -370,18 +428,7 @@ class Timer extends React.Component {
               {elapsedString}
             </h2>
           </div>
-          <div className="extra content">
-            <span
-              className="right floated edit icon"
-              onClick={this.props.onEditClick}>
-              <i className="edit icon"></i>
-            </span>
-            <span
-              className="right floated trash icon"
-              onClick={this.handleTrashClick}>
-              <i className="trash icon"></i>
-            </span>
-          </div>
+            {editTrashEl}
         </div>
 
         <TimerActionButton
