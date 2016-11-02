@@ -3,25 +3,9 @@
 class TimersDashboard extends React.Component {
   constructor(props) {
     super(props);
-    const timers = [
-      {
-        title: 'Practice squat',
-        project: 'Gym Chores',
-        id: uuid.v4(),
-        elapsed: 5456099,
-        runningSince: Date.now()
-      },
-      {
-        title: 'Bake squash',
-        project: 'Kitchen Chores',
-        id: uuid.v4(),
-        elapsed: 1273998,
-        runningSince: null
-      }
-    ];
 
     this.state = ({
-      timers: timers
+      timers: []
     });
 
     this.handleCreateFormSubmit = this.handleCreateFormSubmit.bind(this);
@@ -31,6 +15,18 @@ class TimersDashboard extends React.Component {
     this.handleStopClick = this.handleStopClick.bind(this);
   }
 
+  componentDidMount() {
+    this.loadTimersFromServer();
+    setInterval(this.loadTimersFromServer, 5000);
+  }
+
+  loadTimersFromServer() {
+    client.getTimers((serverTimers) => (
+      this.setState({
+        timers: serverTimers })
+      )
+    )
+  }
 
   handleCreateFormSubmit(timer) {
     this.createTimer(timer);
@@ -233,7 +229,19 @@ class EditableTimer extends React.Component {
 
 //-- TIMERFORM ------
 class TimerForm extends React.Component {
+  constructor(props){
+    super(props);
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+
+  }
+
   handleSubmit() {
+    let title = this.refs.title.value;
+    if (!title) {
+      return;
+    }
+
     this.props.onFormSubmit({
       id: this.props.id,
       title: this.refs.title.value,
@@ -241,8 +249,18 @@ class TimerForm extends React.Component {
     });
   }
 
+
+
   render() {
     const submitText = this.props.id ? 'Update' : 'Create';
+
+    const error = (
+      <div className="ui error message">
+        <div className="header">Error</div>
+        <p>You can only sign up for an account once with a given e-mail address.</p>
+      </div>
+    )
+
     return (
       <div className="ui centered card">
         <div className="content">
@@ -253,6 +271,7 @@ class TimerForm extends React.Component {
                 type="text"
                 ref='title'
                 defaultValue={this.props.title} />
+                {error}
             </div>
 
             <div className="field">
@@ -335,8 +354,6 @@ class Timer extends React.Component {
     super(props);
 
     this.state = ({ showEditDelete: false });
-
-
     this.handleStartClick = this.handleStartClick.bind(this);
     this.handleStopClick = this.handleStopClick.bind(this);
     this.handleTrashClick = this.handleTrashClick.bind(this);
@@ -442,8 +459,6 @@ class Timer extends React.Component {
 }
 
 //-- TIMERACTIONBUTTON ------
-
-
 class TimerActionButton extends React.Component {
   render() {
     if (this.props.timerIsRunning) {
