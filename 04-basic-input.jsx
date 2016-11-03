@@ -3,6 +3,52 @@ import React from 'react';
 const content = document.createElement('div');
 document.body.appendChild(content);
 
+
+export default class Prac extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = ({
+      names: []
+    });
+
+    this.onFormSubmit = this.onFormSubmit.bind(this);
+  }
+
+  onFormSubmit(evt) {
+    const name = this.refs.name.value;
+    const names = [ ...this.state.names, name ];
+    this.setState({ names: names });
+    this.refs.name.value = '';
+    evt.preventDefault();
+  }
+
+  render() {
+    return (
+      <div>
+        <h1>Sign Up Sheet</h1>
+
+        <form onSubmit={this.onFormSubmit}>
+          <input
+            placeholder='Name'
+            ref='name'
+          />
+
+          <input type='submit' />
+        </form>
+
+        <div>
+          <h3>Names</h3>
+          <ul>
+            { this.state.names.map((name, i) => <li key={i}>{name}</li>) }
+          </ul>
+        </div>
+      </div>
+    );
+  }
+};
+
+/*
 module.exports = React.createClass({
   displayName: __filename.split('/').slice(-1)[0],
 
@@ -42,3 +88,4 @@ module.exports = React.createClass({
     );
   },
 });
+*/
