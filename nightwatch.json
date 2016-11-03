@@ -30,6 +30,9 @@
         "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true
+      },
+      "globals": {
+        "waitForConditionTimeout": 10000
       }
     }
   }
