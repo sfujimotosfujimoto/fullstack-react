@@ -9,6 +9,7 @@ module.exports = React.createClass({
   onFormSubmit(evt) {
     evt.preventDefault();
     console.log(this.refs.name.value);
+    // console.log(prac);
   },
 
   render() {
