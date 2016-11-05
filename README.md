@@ -1,19 +1,17 @@
-### Fullstack React Forms
+### Running the examples
 
 1. Ensure you have `npm` installed.
 
 Follow the instructions for your platform [here](https://github.com/npm/npm).
 
-2. Install the dependencies
+2. Install all dependencies:
 
 ````
 npm install
 ````
 
-3. Boot the app
+3. We execute the files in the terminal using `babel-node` which comes with `babel-cli`:
 
 ````
-npm start
+./node_modules/.bin/babel-node app.js
 ````
-
-The server is now running - watch the console output for instructions, but by default, your server is now running at [http://192.168.2.18:9966/](http://192.168.2.18:9966/)
