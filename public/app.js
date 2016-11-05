@@ -1,36 +1,21 @@
-function createStore(reducer, initialState) {
-  let state = initialState;
-  const listeners = [];
-
-  const subscribe = (listener) => (
-    listeners.push(listener)
-  );
-
-  const getState = () => (state);
-
-  const dispatch = (action) => {
-    state = reducer(state, action);
-    listeners.forEach(l => l());
-  };
-
-  return {
-    subscribe,
-    getState,
-    dispatch,
-  };
-}
-
 function reducer(state, action) {
   if (action.type === 'ADD_MESSAGE') {
+    console.log('from action: ', action.text);
+    const newMessage = {
+      text: action.text,
+      timestamp: Date.now(),
+      id: uuid.v4(),
+    }
     return {
-      messages: state.messages.concat(action.message),
+      messages: state.messages.concat(newMessage),
     };
   } else if (action.type === 'DELETE_MESSAGE') {
+    const index = state.messages.findIndex((m) => m.id === action.id);
     return {
       messages: [
-        ...state.messages.slice(0, action.index),
+        ...state.messages.slice(0, index),
         ...state.messages.slice(
-          action.index + 1, state.messages.length
+          index + 1, state.messages.length
         ),
       ],
     };
@@ -41,13 +26,13 @@ function reducer(state, action) {
 
 const initialState = { messages: [] };
 
-const store = createStore(reducer, initialState);
+const store = Redux.createStore(reducer, initialState);
 
-const App = React.createClass({
-  componentDidMount: function () {
+class App extends React.Component {
+  componentDidMount() {
     store.subscribe(() => this.forceUpdate());
-  },
-  render: function () {
+  }
+  render() {
     const messages = store.getState().messages;
 
     return (
@@ -56,18 +41,21 @@ const App = React.createClass({
         <MessageInput />
       </div>
     );
-  },
-});
+  }
+};
 
-const MessageInput = React.createClass({
-  handleSubmit: function () {
+class MessageInput extends React.Component {
+  handleSubmit() {
     store.dispatch({
       type: 'ADD_MESSAGE',
-      message: this.refs.messageInput.value,
+      text: this.refs.messageInput.value,
     });
+    // console.log('from messageInput: ',this.refs.messageInput.value );
     this.refs.messageInput.value = '';
-  },
-  render: function () {
+
+  }
+
+  render() {
     return (
       <div className='ui input'>
         <input
@@ -76,7 +64,7 @@ const MessageInput = React.createClass({
         >
         </input>
         <button
-          onClick={this.handleSubmit}
+          onClick={this.handleSubmit.bind(this)}
           className='ui primary button'
           type='submit'
         >
@@ -84,24 +72,28 @@ const MessageInput = React.createClass({
         </button>
        </div>
     );
-  },
-});
+  }
+};
 
-const MessageView = React.createClass({
-  handleClick: function (index) {
+class MessageView extends React.Component {
+  handleClick(id) {
     store.dispatch({
       type: 'DELETE_MESSAGE',
-      index: index,
+      index: id,
     });
-  },
-  render: function () {
+  }
+  render() {
     const messages = this.props.messages.map((message, index) => (
       <div
         className='comment'
         key={index}
-        onClick={() => this.handleClick(index)}
+        onClick={() => this.handleClick(message.id)}
       >
-        {message}
+      <div className='text'>
+        {message.text}
+        <span className='metadata'>@{message.timestamp}</span>
+      </div>
+
       </div>
     ));
     return (
@@ -111,8 +103,8 @@ const MessageView = React.createClass({
         </div>
       </div>
     );
-  },
-});
+  }
+};
 
 ReactDOM.render(
   <App />,
