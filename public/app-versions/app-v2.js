@@ -1,38 +1,27 @@
-/* eslint-disable no-console */
-/* eslint-disable no-shadow */
-
-function createStore(reducer, initialState) {
-  let state = initialState;
-
-  const getState = () => (state);
-
-  const dispatch = (action) => {
-    state = reducer(state, action);
-  };
-
-  return {
-    getState,
-    dispatch,
-  };
-}
-
+/* eslint-disable no-undef */ /* eslint-disable no-shadow */
 
 function reducer(state, action) {
   if (action.type === 'ADD_MESSAGE') {
-    return {
-      messages: state.messages.concat(action.message),
+    const newMessage = {
+      text: action.text,
+      timestamp: Date.now(),
+      id: uuid.v4(),
     };
-  // leanpub-start-insert
+    return {
+      messages: state.messages.concat(newMessage),
+    };
   } else if (action.type === 'DELETE_MESSAGE') {
+    const index = state.messages.findIndex(
+      (m) => m.id === action.id
+    );
     return {
       messages: [
-        ...state.messages.slice(0, action.index),
+        ...state.messages.slice(0, index),
         ...state.messages.slice(
-          action.index + 1, state.messages.length
+          index + 1, state.messages.length
         ),
       ],
     };
-  // leanpub-end-insert
   } else {
     return state;
   }
@@ -40,36 +29,83 @@ function reducer(state, action) {
 
 const initialState = { messages: [] };
 
-const store = createStore(reducer, initialState);
+const store = Redux.createStore(reducer, initialState);
 
-const addMessageAction1 = {
-  type: 'ADD_MESSAGE',
-  message: 'How does it look, Neil?',
-};
+const App = React.createClass({
+  componentDidMount: function () {
+    store.subscribe(() => this.forceUpdate());
+  },
+  render: function () {
+    const messages = store.getState().messages;
 
-store.dispatch(addMessageAction1);
-const stateV1 = store.getState();
+    return (
+      <div className='ui segment'>
+        <MessageView messages={messages} />
+        <MessageInput />
+      </div>
+    );
+  },
+});
 
-const addMessageAction2 = {
-  type: 'ADD_MESSAGE',
-  message: 'Looking good.',
-};
+const MessageInput = React.createClass({
+  handleSubmit: function () {
+    store.dispatch({
+      type: 'ADD_MESSAGE',
+      text: this.refs.messageInput.value,
+    });
+    this.refs.messageInput.value = '';
+  },
+  render: function () {
+    return (
+      <div className='ui input'>
+        <input
+          ref='messageInput'
+          type='text'
+        >
+        </input>
+        <button
+          onClick={this.handleSubmit}
+          className='ui primary button'
+          type='submit'
+        >
+          Submit
+        </button>
+      </div>
+    );
+  },
+});
 
-store.dispatch(addMessageAction2);
-const stateV2 = store.getState();
+const MessageView = React.createClass({
+  handleClick: function (id) {
+    store.dispatch({
+      type: 'DELETE_MESSAGE',
+      id: id,
+    });
+  },
+  render: function () {
+    const messages = this.props.messages.map((message, index) => (
+      <div
+        className='comment'
+        key={index} // We can still just use the `index` for key
+        onClick={() => this.handleClick(message.id)} // Use `id`
+      >
+        <div className='text'> // Wrap message data in `div`
+          {message.text}
+          <span className='metadata'>@{message.timestamp}</span>
+        </div>
+      </div>
+    ));
+    return (
+      <div className='ui center aligned basic segment'>
+        <div className='ui comments'>
+          {messages}
+        </div>
+      </div>
+    );
+  },
+});
 
-console.log('State v1:');
-console.log(stateV1);
-console.log('State v2:');
-console.log(stateV2);
-
-const deleteMessageAction = {
-  type: 'DELETE_MESSAGE',
-  index: 0,
-};
-
-store.dispatch(deleteMessageAction);
-const stateV3 = store.getState();
-
-console.log('State v3:');
-console.log(stateV3);
+ReactDOM.render(
+  <App />,
+  document.getElementById('content')
+);

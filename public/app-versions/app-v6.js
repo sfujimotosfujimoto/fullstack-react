@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */ /* eslint-disable no-shadow */
+/* eslint-disable no-undef */ /* eslint-disable no-shadow */ /* eslint-disable react/prefer-stateless-function */
 
 function reducer(state, action) {
   if (action.type === 'ADD_MESSAGE') {
@@ -7,8 +7,24 @@ function reducer(state, action) {
       timestamp: Date.now(),
       id: uuid.v4(),
     };
+    const threadIndex = state.threads.findIndex(
+      (t) => t.id === action.threadId
+    );
+    const oldThread = state.threads[threadIndex];
+    const newThread = {
+      ...oldThread,
+      messages: oldThread.messages.concat(newMessage),
+    };
+
     return {
-      messages: state.messages.concat(newMessage),
+      ...state,
+      threads: [
+        ...state.threads.slice(0, threadIndex),
+        newThread,
+        ...state.threads.slice(
+          threadIndex + 1, state.threads.length
+        ),
+      ],
     };
   } else if (action.type === 'DELETE_MESSAGE') {
     const index = state.messages.findIndex(
@@ -61,9 +77,35 @@ const App = React.createClass({
     const threads = state.threads;
     const activeThread = threads.find((t) => t.id === activeThreadId);
 
+    const tabs = threads.map(t => (
+      {
+        title: t.title,
+        active: t.id === activeThreadId,
+      }
+    ));
+
     return (
       <div className='ui segment'>
+        <ThreadTabs tabs={tabs} />
         <Thread thread={activeThread} />
+      </div>
+    );
+  },
+});
+
+const ThreadTabs = React.createClass({
+  render: function () {
+    const tabs = this.props.tabs.map((tab, index) => (
+      <div
+        key={index}
+        className={tab.active ? 'active item' : 'item'}
+      >
+        {tab.title}
+      </div>
+    ));
+    return (
+      <div className='ui top attached tabular menu'>
+        {tabs}
       </div>
     );
   },
@@ -74,6 +116,7 @@ const MessageInput = React.createClass({
     store.dispatch({
       type: 'ADD_MESSAGE',
       text: this.refs.messageInput.value,
+      threadId: this.props.threadId,
     });
     this.refs.messageInput.value = '';
   },
@@ -122,7 +165,7 @@ const Thread = React.createClass({
         <div className='ui comments'>
           {messages}
         </div>
-        <MessageInput />
+        <MessageInput threadId={this.props.thread.id} />
       </div>
     );
   },

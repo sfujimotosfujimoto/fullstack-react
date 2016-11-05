@@ -1,29 +1,85 @@
-/* eslint-disable no-undef */ /* eslint-disable no-shadow */ /* eslint-disable react/prefer-stateless-function */
+/* eslint-disable no-undef */ /* eslint-disable no-shadow */ /* eslint-disable react/prefer-stateless-function */ /* eslint-disable default-case */ /* eslint-disable consistent-return */ // eslint-disable-line max-len
 
 function reducer(state, action) {
-  if (action.type === 'ADD_MESSAGE') {
-    const newMessage = {
-      text: action.text,
-      timestamp: Date.now(),
-      id: uuid.v4(),
-    };
-    return {
-      messages: state.messages.concat(newMessage),
-    };
-  } else if (action.type === 'DELETE_MESSAGE') {
-    const index = state.messages.findIndex(
-      (m) => m.id === action.id
-    );
-    return {
-      messages: [
-        ...state.messages.slice(0, index),
-        ...state.messages.slice(
-          index + 1, state.messages.length
-        ),
-      ],
-    };
+  return {
+    activeThreadId: activeThreadIdReducer(state.activeThreadId, action),
+    threads: threadsReducer(state.threads, action),
+  };
+}
+
+function activeThreadIdReducer(state, action) {
+  if (action.type === 'OPEN_THREAD') {
+    return action.id;
   } else {
     return state;
+  }
+}
+
+function findThreadIndex(threads, action) {
+  switch (action.type) {
+    case 'ADD_MESSAGE': {
+      return threads.findIndex(
+        (t) => t.id === action.threadId
+      );
+    }
+    case 'DELETE_MESSAGE': {
+      return threads.findIndex(
+        (t) => t.messages.find((m) => (
+          m.id === action.id
+        ))
+      );
+    }
+  }
+}
+
+function threadsReducer(state, action) {
+  switch (action.type) {
+    case 'ADD_MESSAGE':
+    case 'DELETE_MESSAGE': {
+      const threadIndex = findThreadIndex(state, action);
+
+      const oldThread = state[threadIndex];
+      const newThread = {
+        ...oldThread,
+        messages: messagesReducer(oldThread.messages, action),
+      };
+
+      return [
+        ...state.slice(0, threadIndex),
+        newThread,
+        ...state.slice(
+          threadIndex + 1, state.length
+        ),
+      ];
+    }
+    default: {
+      return state;
+    }
+  }
+}
+
+function messagesReducer(state, action) {
+  switch (action.type) {
+    case 'ADD_MESSAGE': {
+      const newMessage = {
+        text: action.text,
+        timestamp: Date.now(),
+        id: uuid.v4(),
+      };
+      return state.concat(newMessage);
+    }
+    case 'DELETE_MESSAGE': {
+      const messageIndex = state.findIndex((m) => m.id === action.id);
+      return [
+        ...state.slice(0, messageIndex),
+        ...state.slice(
+          messageIndex + 1, state.length
+        ),
+      ];
+    }
+    default: {
+      return state;
+    }
   }
 }
 
@@ -62,9 +118,10 @@ const App = React.createClass({
     const activeThread = threads.find((t) => t.id === activeThreadId);
 
     const tabs = threads.map(t => (
-      { // a "tab" object
+      {
         title: t.title,
         active: t.id === activeThreadId,
+        id: t.id,
       }
     ));
 
@@ -77,12 +134,21 @@ const App = React.createClass({
   },
 });
 
+/* eslint-disable react/prefer-stateless-function */
+
 const ThreadTabs = React.createClass({
+  handleClick: function (id) {
+    store.dispatch({
+      type: 'OPEN_THREAD',
+      id: id,
+    });
+  },
   render: function () {
     const tabs = this.props.tabs.map((tab, index) => (
       <div
         key={index}
         className={tab.active ? 'active item' : 'item'}
+        onClick={() => this.handleClick(tab.id)}
       >
         {tab.title}
       </div>
@@ -100,6 +166,7 @@ const MessageInput = React.createClass({
     store.dispatch({
       type: 'ADD_MESSAGE',
       text: this.refs.messageInput.value,
+      threadId: this.props.threadId,
     });
     this.refs.messageInput.value = '';
   },
@@ -148,7 +215,7 @@ const Thread = React.createClass({
         <div className='ui comments'>
           {messages}
         </div>
-        <MessageInput />
+        <MessageInput threadId={this.props.thread.id} />
       </div>
     );
   },

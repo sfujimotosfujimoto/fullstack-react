@@ -94,30 +94,9 @@ function messagesReducer(state = [], action) {
 
 const store = Redux.createStore(reducer);
 
-function deleteMessage(id) {
-  return {
-    type: 'DELETE_MESSAGE',
-    id: id,
-  };
-}
-
-function addMessage(text, threadId) {
-  return {
-    type: 'ADD_MESSAGE',
-    text: text,
-    threadId: threadId,
-  };
-}
-
-function openThread(id) {
-  return {
-    type: 'OPEN_THREAD',
-    id: id,
-  };
-}
-
 const App = () => (
   <div className='ui segment'>
+    // `Thread` changed to `ThreadDisplay` below
     <ThreadTabs />
     <ThreadDisplay />
   </div>
@@ -139,32 +118,34 @@ const Tabs = (props) => (
   </div>
 );
 
-const mapStateToTabsProps = (state) => {
-  const tabs = state.threads.map(t => (
-    {
-      title: t.title,
-      active: t.id === state.activeThreadId,
-      id: t.id,
-    }
-  ));
+const ThreadTabs = React.createClass({
+  componentDidMount: function () {
+    store.subscribe(() => this.forceUpdate());
+  },
+  render: function () {
+    const state = store.getState();
 
-  return {
-    tabs,
-  };
-};
+    const tabs = state.threads.map(t => (
+      {
+        title: t.title,
+        active: t.id === state.activeThreadId,
+        id: t.id,
+      }
+    ));
 
-const mapDispatchToTabsProps = (dispatch) => (
-  {
-    onClick: (id) => (
-      dispatch(openThread(id))
-    ),
-  }
-);
-
-const ThreadTabs = ReactRedux.connect(
-  mapStateToTabsProps,
-  mapDispatchToTabsProps
-)(Tabs);
+    return (
+      <Tabs
+        tabs={tabs}
+        onClick={(id) => (
+          store.dispatch({
+            type: 'OPEN_THREAD',
+            id: id,
+          })
+        )}
+      />
+    );
+  },
+});
 
 const TextFieldSubmit = (props) => {
   let input;
@@ -221,40 +202,37 @@ const Thread = (props) => (
   </div>
 );
 
-const mapStateToThreadProps = (state) => (
-  {
-    thread: state.threads.find(
-      t => t.id === state.activeThreadId
-    ),
-  }
-);
+const ThreadDisplay = React.createClass({
+  componentDidMount: function () {
+    store.subscribe(() => this.forceUpdate());
+  },
+  render: function () {
+    const state = store.getState();
+    const activeThreadId = state.activeThreadId;
+    const activeThread = state.threads.find(
+      t => t.id === activeThreadId
+    );
 
-const mapDispatchToThreadProps = (dispatch) => (
-  {
-    onMessageClick: (id) => (
-      dispatch(deleteMessage(id))
-    ),
-    dispatch: dispatch,
-  }
-);
-
-const mergeThreadProps = (stateProps, dispatchProps) => (
-  {
-    ...stateProps,
-    ...dispatchProps,
-    onMessageSubmit: (text) => (
-      dispatchProps.dispatch(
-        addMessage(text, stateProps.thread.id)
-      )
-    ),
-  }
-);
-
-const ThreadDisplay = ReactRedux.connect(
-  mapStateToThreadProps,
-  mapDispatchToThreadProps,
-  mergeThreadProps
-)(Thread);
+    return (
+      <Thread
+        thread={activeThread}
+        onMessageClick={(id) => (
+          store.dispatch({
+            type: 'DELETE_MESSAGE',
+            id: id,
+          })
+        )}
+        onMessageSubmit={(text) => (
+          store.dispatch({
+            type: 'ADD_MESSAGE',
+            text: text,
+            threadId: activeThreadId,
+          })
+        )}
+      />
+    );
+  },
+});
 
 ReactDOM.render(
   <ReactRedux.Provider store={store}>
