@@ -1,13 +1,16 @@
 function reducer(state, action) {
   if (action.type === 'ADD_MESSAGE') {
-    console.log('from action: ', action.text);
+    console.log("from action: ", action.text);
+
     const newMessage = {
       text: action.text,
       timestamp: Date.now(),
       id: uuid.v4(),
     }
+    console.log(newMessage);
+    console.log(state.threads[0].messages);
     return {
-      messages: state.messages.concat(newMessage),
+      messages: state.threads[0].messages.concat(newMessage),
     };
   } else if (action.type === 'DELETE_MESSAGE') {
     const index = state.messages.findIndex((m) => m.id === action.id);
@@ -24,25 +27,52 @@ function reducer(state, action) {
   }
 }
 
-const initialState = { messages: [] };
+const initialState = {
+  activeThreadId: '1-fca2',
+  threads: [
+    {
+      id: '1-fca2',
+      title: 'Buzz Aldrin',
+      messages: [
+        {
+          text: 'Twelve minutes to ignition',
+          timestamp: Date.now(),
+          id: uuid.v4(),
+        }
+      ]
+    },
+    {
+      id: '2-be91',
+      title: 'Michael Collins',
+      messages: []
+    }
+  ]
+};
 
 const store = Redux.createStore(reducer, initialState);
+
+
 
 class App extends React.Component {
   componentDidMount() {
     store.subscribe(() => this.forceUpdate());
   }
   render() {
-    const messages = store.getState().messages;
+    const state = store.getState();
+    const activeThreadId = state.activeThreadId;
+    const threads = state.threads;
+    const activeThread = threads.find((t) => t.id === activeThreadId);
+
 
     return (
       <div className='ui segment'>
-        <MessageView messages={messages} />
-        <MessageInput />
+        <Thread thread={activeThread} />
       </div>
     );
   }
 };
+
+
 
 class MessageInput extends React.Component {
   handleSubmit() {
@@ -75,7 +105,9 @@ class MessageInput extends React.Component {
   }
 };
 
-class MessageView extends React.Component {
+
+
+class Thread extends React.Component {
   handleClick(id) {
     store.dispatch({
       type: 'DELETE_MESSAGE',
@@ -83,7 +115,7 @@ class MessageView extends React.Component {
     });
   }
   render() {
-    const messages = this.props.messages.map((message, index) => (
+    const messages = this.props.thread.messages.map((message, index) => (
       <div
         className='comment'
         key={index}
@@ -101,6 +133,7 @@ class MessageView extends React.Component {
         <div className='ui comments'>
           {messages}
         </div>
+        <MessageInput />
       </div>
     );
   }
