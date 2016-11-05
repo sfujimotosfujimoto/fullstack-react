@@ -1,10 +1,10 @@
 {
-  "name": "counter",
+  "name": "chat_simple",
   "version": "1.0.0",
   "author": "fullstackreact.com",
   "scripts": {
-    "server": "./node_modules/.bin/babel-node app.js",
-    "go": "npm run server"
+    "go": "npm run server",
+    "server": "echo 'Find the server at http://localhost:3000\n' && ./node_modules/http-server/bin/http-server ./public -p 3000"
   },
   "babel": {
     "presets": [
@@ -17,6 +17,7 @@
     "babel-cli": "6.6.5",
     "babel-core": "6.4.5",
     "babel-preset-es2015": "6.3.13",
-    "babel-preset-stage-0": "6.5.0"
+    "babel-preset-stage-0": "6.5.0",
+    "http-server": "0.9.0"
   }
 }
