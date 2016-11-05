@@ -1,3 +1,24 @@
+
+class App extends React.Component {
+  componentDidMount() {
+    store.subscribe(() => this.forceUpdate());
+  }
+
+  render() {
+    const messages = store.getState().messages;
+    return (
+      <div className="ui segment">
+        <MessageView messages={messages} />
+        <MessageInput />
+      </div>
+
+    );
+  }
+}
+export default App;
+
+
+
 function createStore(reducer, initialState) {
   let state = initialState;
   const listeners = [];
@@ -47,6 +68,7 @@ const listener = () => (
 
 store.subscribe(listener);
 
+/*
 const addMessageAction1 = {
   type: 'ADD_MESSAGE',
   message: 'How does it look, Neil?'
@@ -69,3 +91,4 @@ const deleteMessageAction = {
 }
 
 store.dispatch(deleteMessageAction);
+*/
