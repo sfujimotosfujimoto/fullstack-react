@@ -21,13 +21,13 @@ export const usersFriends = sql.define({
   name: 'users_friends',
   columns: [{
     name: 'user_id_a',
-    dataType: 'int'
+    dataType: 'int',
   }, {
     name: 'user_id_b',
-    dataType: 'int'
+    dataType: 'int',
   }, {
     name: 'level',
-    dataType: 'text'
+    dataType: 'text',
   }]
 });
 
@@ -51,3 +51,12 @@ export const posts = sql.define({
     dataType: 'datetime'
   }]
 });
+
+export const dbIdToNodeId = (dbId, tableName) => {
+  return `${tableName}:${dbId}`;
+};
+
+export const splitNodeId = (nodeId) => {
+  const [tableName, dbId] = nodeId.split(':');
+  return { tableName, dbId };
+};
